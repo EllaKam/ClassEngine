@@ -38,11 +38,15 @@ namespace UI
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             List<Task> tasks = new List<Task>();
-
+            StringBuilder s = new StringBuilder();
             foreach (string filePath in Directory.GetFiles(directoryPath))
             {
                 var worker = new Worker();
-                worker.ProcessResult += details => Invoke((Action)(() => txtResult.Text += $"{details}\r\n"));
+              
+                 worker.ProcessResult += details =>
+                 {
+                     s.Append($"{details}\r\n");
+                 };
                 Task task = Task.Factory.StartNew(() => worker.LoadClass(filePath));
                 tasks.Add(task);
             }
@@ -63,6 +67,7 @@ namespace UI
             }
             stopwatch.Stop();
             lblTime.Text = $"Time elapsed: {stopwatch.Elapsed.ToString("hh\\:mm\\:ss\\:fff")}";
+            txtResult.Text = s.ToString();
             btnCreater.Enabled = true;
             btnRun.Enabled = true;
      
