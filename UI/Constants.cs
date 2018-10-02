@@ -12,6 +12,8 @@ namespace UI
         public const string RULES_XML = @"<RuleList>
                                                 <Offender>
                                                     <FirstName>Contains A</FirstName>
+                                                    <FirstName>Contains B</FirstName>
+                                                    <FirstName>Contains C</FirstName>
                                                     <LastName>Contains 1</LastName>
                                                     <DateOfBirth>GreaterThan 13/10/2017</DateOfBirth>
                                                 </Offender>  
@@ -31,7 +33,6 @@ namespace UI
                                               <DateOfBirth>System.DateTime</DateOfBirth>  
                                              </Offender>
                                             </ClassList>";
-
         public const String PATH_DIRECTORY = "Repository";
 
     }

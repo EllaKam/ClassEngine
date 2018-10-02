@@ -20,9 +20,9 @@ namespace BL
             foreach (XmlNode xmlNode in xmlDocData.FirstChild.ChildNodes)
             {
                 Basic basic =   GenerateProcessManager.GetManager().Classes[xmlDocData.FirstChild.Name].BasicCreater();
-                FieldInfo item = basic.Parameters[xmlNode.Name];
-                item.Data = item.DataConverter(xmlNode.InnerText);
-                item.Run(ProcessResult);
+                FieldInfo field = basic.Parameters[xmlNode.Name];
+                field.Data = field.DataConvertor(xmlNode.InnerText);
+                field.Run(ProcessResult);
             }
         }
     }

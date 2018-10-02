@@ -19,6 +19,7 @@ namespace UI
         #region Members
         private CancellationTokenSource tokenSource;
         private string directoryPath = Path.Combine(System.Environment.CurrentDirectory, Constants.PATH_DIRECTORY);
+        private readonly object lockOb = new object();
         #endregion
         public General()
         {
@@ -38,14 +39,18 @@ namespace UI
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             List<Task> tasks = new List<Task>();
-            StringBuilder s = new StringBuilder();
+            StringBuilder sResult = new StringBuilder();
             foreach (string filePath in Directory.GetFiles(directoryPath))
             {
                 var worker = new Worker();
               
                  worker.ProcessResult += details =>
                  {
-                     s.Append($"{details}\r\n");
+                     lock (lockOb)
+                     {
+                          sResult.Append($"{details}\r\n");
+                     }
+                    
                  };
                 Task task = Task.Factory.StartNew(() => worker.LoadClass(filePath));
                 tasks.Add(task);
@@ -67,7 +72,7 @@ namespace UI
             }
             stopwatch.Stop();
             lblTime.Text = $"Time elapsed: {stopwatch.Elapsed.ToString("hh\\:mm\\:ss\\:fff")}";
-            txtResult.Text = s.ToString();
+            txtResult.Text = sResult.ToString();
             btnCreater.Enabled = true;
             btnRun.Enabled = true;
      

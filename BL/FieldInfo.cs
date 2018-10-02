@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,12 +12,12 @@ namespace BL
     {
         #region Members
         public object Data { get; set; }
-
+        public string TypeName { get; set; }
         private static Dictionary<Operation, Func<dynamic, dynamic, bool>> rules;
         private Operation[] operations = (Operation[])Enum.GetValues(typeof(Operation));
-        private OperationInfo operationInfo;
-        private string ruleText;
-        private string typeName;
+        private List<OperationInfo> operationsInfo;
+
+
         private string fieldName;
         private string ownerClassName;
         #endregion
@@ -27,10 +28,11 @@ namespace BL
         }
         public FieldInfo(string owner, string field, string type)
         {
-            typeName = type;
+            TypeName = type;
             fieldName = field;
             ownerClassName = owner;
-            Data = Activator.CreateInstance(Type.GetType(typeName), GetObject(typeName));
+            Data = Activator.CreateInstance(Type.GetType(TypeName), GetObject(TypeName));
+            operationsInfo = new List<OperationInfo>();
         }
         private static void InitDictionary()
         {
@@ -58,17 +60,18 @@ namespace BL
         #region Public Methods
         public void CreateOperationInfo(string value)
         {
-            ruleText = value;
-            operationInfo = new OperationInfo();
-            operationInfo.OperationRule = operations.Where(x => ruleText.Contains(x.ToString())).FirstOrDefault();
-            string splitParam = Regex.Split(ruleText, operationInfo.OperationRule.ToString())[1];
-            operationInfo.ParamRule = DataConverter(splitParam.Trim());
+            OperationInfo operationInfo = new OperationInfo();
+            operationInfo.RuleText = value;
+            operationInfo.OperationRule = operations.Where(x => value.Contains(x.ToString())).FirstOrDefault();
+            string splitParam = Regex.Split(value, operationInfo.OperationRule.ToString())[1];
+            operationInfo.ParamRule = DataConvertor(splitParam.Trim());
+            operationsInfo.Add(operationInfo);
         }
         public void Initialization()
         {
             Random getrandom = new Random();
             string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            switch (typeName)
+            switch (TypeName)
             {
                 case "Null":
                     Data = null;
@@ -102,10 +105,10 @@ namespace BL
             }
         }
 
-        public object DataConverter(string value)
+        public object DataConvertor( string value)
         {
             object result = null;
-            switch (typeName)
+            switch (TypeName)
             {
                 case "System.Boolean":
                     result = Convert.ToBoolean(value);
@@ -126,35 +129,36 @@ namespace BL
             return result;
         }
 
-        public void Run(Action<string> action)
+        public void Run( Action<string> action)
         {
-            string ruleResult = string.Empty;
-            try
+            foreach (OperationInfo operationInfo in operationsInfo)
             {
-                Func<object, object, bool> ruleMethod;
-                if (operationInfo == null)
+                string ruleResult = string.Empty;
+                try
                 {
-                    ruleResult = $"{DateTime.Now.ToString("HH:mm:ss")} Class {ownerClassName}  Fiels {fieldName} Value {Data} Rule ---";
+                    Func<object, object, bool> ruleMethod;
+                    if (rules.TryGetValue(operationInfo.OperationRule, out ruleMethod))
+                    {
+                        if (ruleMethod.Invoke(Data, operationInfo.ParamRule))
+                        {
+                            ruleResult = $"{DateTime.Now.ToString("HH:mm:ss")} Class {ownerClassName} Field {fieldName} Value {Data} Rule {operationInfo.RuleText} => Operation [{operationInfo.ParamRule}]";
+                        }
+                    }
                 }
-                else if (rules.TryGetValue(operationInfo.OperationRule, out ruleMethod))
+                catch (Exception e)
                 {
-                    bool res = ruleMethod.Invoke(Data, operationInfo.ParamRule);
-                    ruleResult = $"{DateTime.Now.ToString("HH:mm:ss")} Class {ownerClassName} Field {fieldName} Value {Data} Rule {ruleText} => Operation [{operationInfo.ParamRule}] Result:{res}";
+                    ruleResult = $"Rule {operationInfo.RuleText} execution failure on {ownerClassName}.{fieldName}";
                 }
-            }
-            catch (Exception e)
-            {
-                ruleResult = $"Rule {ruleText} execution failure on {ownerClassName}.{fieldName}";
-            }
-            if(action != null)
-            {
-                action(ruleResult);
+                if (!string.IsNullOrEmpty(ruleResult) && action != null)
+                {
+                    action(ruleResult);
+                }
             }
         }
+
         #endregion
 
         #region Private Methods
-
         private object[] GetObject(string type)
         {
             if (type == "System.String")

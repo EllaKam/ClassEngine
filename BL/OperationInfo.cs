@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Text.RegularExpressions;
 namespace BL
 {
     public enum Operation
@@ -18,23 +18,15 @@ namespace BL
         LessThan,
         LessThanOrEqualTo
     }
+
     public class OperationInfo
     {
         #region Members
         public dynamic ParamRule { get; set; }
         public Operation OperationRule { get; set; }
+        public string RuleText { get; set; }
+     
         #endregion
-        #region Construction
-        public OperationInfo()
-        {
-
-        }
-        public OperationInfo(OperationInfo operation)
-        {
-            ParamRule = operation.ParamRule;
-            OperationRule = operation.OperationRule;
-        }
-        #endregion
-
+     
     }
 }
