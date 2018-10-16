@@ -11,20 +11,30 @@ namespace BL
     {
         #region Members
         public Dictionary<string, FieldInfo> Parameters { get; set; }
-
-        private XmlNode xmlProperties;
+        public Dictionary<string, Basic> ComplexParameters { get; set; }
         private XmlNode XmlRules;
         private string className;
         #endregion
         #region Construction
-        public Basic(String name, XmlNode xmlSimpe)
+        public Basic(String name)
         {
-            xmlProperties = xmlSimpe;
             className = name;
             Parameters = new Dictionary<string, FieldInfo>();
+            ComplexParameters = new Dictionary<string, Basic>();
+            XmlDocument xmlDoc = GenerateProcessManager.GetManager().DataXMLDocument;
+            XmlNode xmlSimpe = GenerateProcessManager.GetManager().GetNodeByClass(name);
             foreach (XmlNode innerNode in xmlSimpe.ChildNodes)
             {
-                Parameters.Add(innerNode.Name, new FieldInfo(className, innerNode.Name, innerNode.InnerText));
+                var node = xmlDoc.SelectSingleNode($"//{ innerNode.InnerText}");
+                if (node == null)
+                {
+                    Parameters.Add(innerNode.Name, new FieldInfo(className, innerNode.Name, innerNode.InnerText));
+                }
+                else
+                {
+                    Basic basic =  GenerateProcessManager.GetManager().GetBasicClass(node);
+                    ComplexParameters.Add(node.Name, basic);
+                }
             }
         }
         #endregion
@@ -32,31 +42,37 @@ namespace BL
         #region Public Methods
         public Basic BasicCreater()
         {
-            Basic basic = new Basic(className, xmlProperties);
+            Basic basic = new Basic(className);
             basic.CreateRules(this.XmlRules);
             return basic;
         }
         public Basic BasicCreaterWithInitialization()
         {
-            Basic basic = new Basic(className, xmlProperties);
+            Basic basic = new Basic(className);
+
+            foreach ( Basic basicItem in basic.ComplexParameters.Values)
+            {
+                basicItem.Initialization();
+            }
             foreach (var param in basic.Parameters.Values)
             {
                 param.Initialization();
             }
             return basic;
         }
+
+        public void Initialization()
+        {
+            foreach (var param in Parameters.Values)
+            {
+                param.Initialization();
+            }
+        }
+
         public void CreatedXMLFile(string filePath)
         {
-            XmlDocument finalDocument = new XmlDocument();
-            finalDocument.LoadXml(xmlProperties.OuterXml);
-            foreach (XmlNode xmlNode in xmlProperties.ChildNodes)
-            {
-                XmlNode innerNode = finalDocument.SelectSingleNode($"//{xmlNode.Name}");
-                if (innerNode != null)
-                {
-                    innerNode.InnerText = Parameters[xmlNode.Name].Data.ToString();
-                }
-            }
+          
+            XmlDocument finalDocument = NodeParse();
             try
             {
                 finalDocument.Save(filePath); ;
@@ -66,6 +82,8 @@ namespace BL
                 GenerateProcessManager.GetManager().SendStatus($"File {filePath} saving problem");
             }
         }
+
+    
         public void CreateRules(XmlNode rule)
         {
             XmlRules = rule;
@@ -79,6 +97,43 @@ namespace BL
                 param.CreateOperationInfo(innerNode.InnerText);
             }
         }
+        public XmlDocument NodeParse()
+        {
+            XmlNode xmlProperties = GenerateProcessManager.GetManager().GetNodeByClass(className);
+            XmlDocument finalDocument = new XmlDocument();
+            finalDocument.LoadXml(xmlProperties.OuterXml);
+
+            foreach (XmlNode xmlNode in xmlProperties.ChildNodes)
+            {
+                XmlNode innerNode = finalDocument.SelectSingleNode($"//{xmlNode.Name}");
+                if (innerNode != null)
+                {
+                    FieldInfo fieldInfo = null;
+                    if (Parameters.TryGetValue(xmlNode.Name, out fieldInfo))
+                    {
+                        innerNode.InnerText = fieldInfo.Data.ToString();
+                    }
+                    else if (ComplexParameters.ContainsKey(xmlNode.InnerText))
+                    {
+                        Basic b = null;
+                        if (ComplexParameters.TryGetValue(xmlNode.InnerText, out b))
+                        {
+                            XmlDocument partional = b.NodeParse();
+                            innerNode.InnerText = "";
+                            innerNode.AppendChild(finalDocument.ImportNode(partional.DocumentElement, true));
+                        }
+
+                    }
+                }
+            }
+            return finalDocument;
+        }
+
+        #endregion
+
+        #region PrivateMethods
+
+
         #endregion
 
     }

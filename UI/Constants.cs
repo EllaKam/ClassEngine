@@ -16,22 +16,29 @@ namespace UI
                                                     <FirstName>Contains C</FirstName>
                                                     <LastName>Contains 1</LastName>
                                                     <DateOfBirth>GreaterThan 13/10/2017</DateOfBirth>
-                                                </Offender>  
+                                                </Offender>
+                                                <Address>
+                                                    <State>Contains A</State>
+                                                    <State>Contains B</State>
+                                                </Address>
                                             </RuleList>";
-
         public const string CLASS_DATA_XML = @"<ClassList>
                                              <Address>
-                                              <State>System.String</State>
-                                              <City>System.String</City>
-                                              <Street>System.String</Street>
-                                              <HomeNumber>System.Int32</HomeNumber>
-                                              <ZipCode>System.Int32</ZipCode>
+                                                  <State>System.String</State>
+                                                  <City>System.String</City>
+                                                  <Street>System.String</Street>
+                                                  <HomeNumber>System.Int32</HomeNumber>
+                                                  <ZipCode>System.Int32</ZipCode>
                                              </Address>
                                              <Offender>  
-                                              <FirstName>System.String</FirstName>  
-                                              <LastName>System.String</LastName>  
-                                              <DateOfBirth>System.DateTime</DateOfBirth>  
+                                                  <FirstName>System.String</FirstName>  
+                                                  <LastName>System.String</LastName>  
+                                                  <DateOfBirth>System.DateTime</DateOfBirth> 
+                                                  <OffenderAddress>Address</OffenderAddress>
                                              </Offender>
+                                             <MyClass>
+                                                <OffenderKUKU>Offender</OffenderKUKU>
+                                             </MyClass>
                                             </ClassList>";
         public const String PATH_DIRECTORY = "Repository";
 

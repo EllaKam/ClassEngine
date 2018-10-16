@@ -15,13 +15,18 @@ namespace BL
         private static readonly object lockOb = new object();
         private static GenerateProcessManager instance;
         public Dictionary<string, Basic> Classes { get; set; }
+
+        public Dictionary<string, XmlNode> ClassesXML { get; set; }
+
         public  event Action<string> Status;
+        public XmlDocument DataXMLDocument { get; private set; }
         #endregion
 
         #region Construction
         private GenerateProcessManager()
         {
             Classes = new Dictionary<string, Basic>();
+            ClassesXML = new Dictionary<string, XmlNode>();
         }
         public static GenerateProcessManager GetManager()
         {
@@ -58,15 +63,43 @@ namespace BL
             }
             SendStatus($"{current} clases created" );
         }
+
+       
         public void LoadClassData(string pathXmlClassData)
         {
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(pathXmlClassData);
-            foreach (XmlNode xmlNode in xmlDoc.FirstChild.ChildNodes)
+            DataXMLDocument = new XmlDocument();
+            DataXMLDocument.LoadXml(pathXmlClassData);
+             
+            foreach (XmlNode xmlNode in DataXMLDocument.FirstChild.ChildNodes)
             {
-                Classes.Add(xmlNode.Name, new Basic(xmlNode.Name, xmlNode));
+                if (!ClassesXML.ContainsKey(xmlNode.Name))
+                {
+                    ClassesXML.Add(xmlNode.Name, xmlNode);
+                }
+                if (!Classes.ContainsKey(xmlNode.Name))
+                {
+                    Classes.Add(xmlNode.Name, new Basic(xmlNode.Name));
+                }
             }
         }
+
+        public XmlNode GetNodeByClass(string className)
+        {
+            XmlNode node = null;
+            ClassesXML.TryGetValue(className, out node);
+            return node;
+        }
+
+        public Basic GetBasicClass(XmlNode node)
+        {
+            Basic simple = null;
+            if (!Classes.TryGetValue(node.Name, out simple))
+            {
+                Classes.Add(node.Name, new Basic(node.Name));
+            }
+            return simple;
+        }
+       
         public void LoadRules(string pathXmlRules)
         {
             var xmlDoc = new XmlDocument();

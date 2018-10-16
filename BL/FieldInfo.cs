@@ -129,7 +129,7 @@ namespace BL
             return result;
         }
 
-        public void Run( Action<string> action)
+        public void Run( Action<string> action, string parrent)
         {
             foreach (OperationInfo operationInfo in operationsInfo)
             {
@@ -141,7 +141,7 @@ namespace BL
                     {
                         if (ruleMethod.Invoke(Data, operationInfo.ParamRule))
                         {
-                            ruleResult = $"{DateTime.Now.ToString("HH:mm:ss")} Class {ownerClassName} Field {fieldName} Value {Data} Rule {operationInfo.RuleText} => Operation [{operationInfo.ParamRule}]";
+                            ruleResult = $"{DateTime.Now.ToString("HH:mm:ss")} Class {parrent} {ownerClassName} Field {fieldName} Value {Data} Rule {operationInfo.RuleText} => Operation [{operationInfo.ParamRule}]";
                         }
                     }
                 }
