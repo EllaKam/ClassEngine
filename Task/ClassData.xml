@@ -1,0 +1,14 @@
+<ClassList>
+	<Address>
+		<State>string</State>
+		<City>string</City>
+		<Street>string</Street>
+		<HomeNumber>int</HomeNumber>
+		<ZipCode>int</ZipCode>
+	</Address>
+	<Offender>  
+		<FirstName>string</FirstName>  
+		<LastName>string</LastName>  
+		<DateOfBirth>DateTime</DateOfBirth>  
+	</Offender>
+</ClassList>
